@@ -2,8 +2,8 @@ pipeline {
     agent any
 
     environment {
-        PROJECT_ID = 'canvas-primacy-466005-f9'  // Replace with your GCP project ID
-        SECRET_NAME = 'terraformsvckey'        // Name of the secret in GCP
+        PROJECT_ID = 'canvas-primacy-466005-f9'     // 🔁 Replace this with your GCP project ID
+        SECRET_NAME = 'terraformsvckey'           // 🔁 Replace with the actual GCP secret name
     }
 
     stages {
@@ -16,10 +16,10 @@ pipeline {
         stage('Authenticate Jenkins to GCP') {
             steps {
                 withCredentials([file(credentialsId: 'jenkinssvckey', variable: 'JENKINS_GCP_KEY')]) {
-                    sh '''
-                        gcloud auth activate-service-account --key-file=$JENKINS_GCP_KEY
-                        gcloud config set project $PROJECT_ID
-                        echo "Jenkins authenticated to GCP using jenkinssvc key"
+                    bat '''
+                        gcloud auth activate-service-account --key-file=%JENKINS_GCP_KEY%
+                        gcloud config set project %PROJECT_ID%
+                        echo Authenticated Jenkins to GCP
                     '''
                 }
             }
@@ -27,18 +27,17 @@ pipeline {
 
         stage('Fetch Terraform SA Key from Secret Manager') {
             steps {
-                sh '''
-                    gcloud secrets versions access latest --secret=$SECRET_NAME > terraform-sa.json
-                    export GOOGLE_APPLICATION_CREDENTIALS=terraform-sa.json
-                    echo "Fetched terraform service account key from Secret Manager"
+                bat '''
+                    gcloud secrets versions access latest --secret=%SECRET_NAME% > terraform-sa.json
+                    echo Fetched terraform-sa.json from GCP Secret Manager
                 '''
             }
         }
 
         stage('Terraform Init') {
             steps {
-                sh '''
-                    export GOOGLE_APPLICATION_CREDENTIALS=terraform-sa.json
+                bat '''
+                    set GOOGLE_APPLICATION_CREDENTIALS=terraform-sa.json
                     terraform init
                 '''
             }
@@ -46,8 +45,8 @@ pipeline {
 
         stage('Terraform Plan') {
             steps {
-                sh '''
-                    export GOOGLE_APPLICATION_CREDENTIALS=terraform-sa.json
+                bat '''
+                    set GOOGLE_APPLICATION_CREDENTIALS=terraform-sa.json
                     terraform plan -out=tfplan.out
                 '''
             }
@@ -56,8 +55,8 @@ pipeline {
         stage('Terraform Apply') {
             steps {
                 input message: "Apply Terraform changes?"
-                sh '''
-                    export GOOGLE_APPLICATION_CREDENTIALS=terraform-sa.json
+                bat '''
+                    set GOOGLE_APPLICATION_CREDENTIALS=terraform-sa.json
                     terraform apply -auto-approve tfplan.out
                 '''
             }
@@ -66,7 +65,7 @@ pipeline {
 
     post {
         always {
-            sh 'rm -f terraform-sa.json'
+            bat 'del terraform-sa.json'
         }
     }
 }
