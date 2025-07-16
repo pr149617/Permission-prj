@@ -2,8 +2,8 @@ pipeline {
     agent any
 
     environment {
-        PROJECT_ID = 'canvas-primacy-466005-f9'     // 🔁 Replace this with your GCP project ID
-        SECRET_NAME = 'terraformsvckey'           // 🔁 Replace with the actual GCP secret name
+        PROJECT_ID = 'canvas-primacy-466005-f9'      // Your GCP project ID
+        SECRET_NAME = 'terraformsvckey'              // Name of secret in Secret Manager
     }
 
     stages {
@@ -17,8 +17,8 @@ pipeline {
             steps {
                 withCredentials([file(credentialsId: 'jenkinssvckey', variable: 'JENKINS_GCP_KEY')]) {
                     bat '''
-                        gcloud auth activate-service-account --key-file=%JENKINS_GCP_KEY%
-                        gcloud config set project %PROJECT_ID%
+                        call gcloud auth activate-service-account --key-file=%JENKINS_GCP_KEY%
+                        call gcloud config set project canvas-primacy-466005-f9
                         echo Authenticated Jenkins to GCP
                     '''
                 }
@@ -28,7 +28,7 @@ pipeline {
         stage('Fetch Terraform SA Key from Secret Manager') {
             steps {
                 bat '''
-                    gcloud secrets versions access latest --secret=%SECRET_NAME% > terraform-sa.json
+                    call gcloud secrets versions access latest --secret=terraformsvckey --project=canvas-primacy-466005-f9 > terraform-sa.json
                     echo Fetched terraform-sa.json from GCP Secret Manager
                 '''
             }
