@@ -1,5 +1,5 @@
 provider "google" {
-    project = "canvas-primacy-466005-f9"
+    project = "your project name "
     
   
 }
