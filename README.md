@@ -28,13 +28,6 @@ Service account keys are often embedded in Terraform files or exposed in Git rep
 
 ---
 
-## 🖼️ Pipeline Architecture Diagram
-
-![Pipeline Flow](path/to/your/diagram.png)
-
-> Replace the above path with the actual path to your image if hosted locally or use the public image link.
-
----
 
 ## 📂 Jenkinsfile
 
